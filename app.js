@@ -1,22 +1,20 @@
 const http = require('http');
 const mysql = require('mysql');
 
-// Create a MySQL connection
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: process.env.db_user,
-  password: process.env.db_password,
-  database: process.env.db_name,
-});
+// const connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: process.env.db_user,
+//   password: process.env.db_password,
+//   database: process.env.db_name,
+// });
 
-// Connect to MySQL
-connection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL: ' + err.stack);
-    return;
-  }
-  console.log('Connected to MySQL as id ' + connection.threadId);
-});
+// connection.connect((err) => {
+//   if (err) {
+//     console.error('Error connecting to MySQL: ' + err.stack);
+//     return;
+//   }
+//   console.log('Connected to MySQL as id ' + connection.threadId);
+// });
 
 // Create a HTTP server
 const server = http.createServer(function(req, res) {
@@ -40,25 +38,25 @@ const server = http.createServer(function(req, res) {
         res.write('</body></html>');
         return res.end();
     }
-    // Handle the request to increment the number
-    else if (req.url === '/increment') {
-        // Increment the number in the database
-        connection.query('UPDATE numbers SET value = value + 1', (err, result) => {
-            if (err) {
-                res.writeHead(500, {'Content-Type': 'text/plain'});
-                return res.end('Error incrementing number in database');
-            }
-            // Fetch the updated number from the database
-            connection.query('SELECT value FROM numbers', (err, rows) => {
-                if (err) {
-                    res.writeHead(500, {'Content-Type': 'text/plain'});
-                    return res.end('Error fetching number from database');
-                }
-                res.writeHead(200, {'Content-Type': 'text/plain'});
-                res.end(rows[0].value.toString());
-            });
-        });
-    }
+
+   // else if (req.url === '/increment') {
+   //     // Increment the number in the database
+   //     connection.query('UPDATE numbers SET value = value + 1', (err, result) => {
+   //         if (err) {
+   //             res.writeHead(500, {'Content-Type': 'text/plain'});
+   //             return res.end('Error incrementing number in database');
+   //         }
+   //         // Fetch the updated number from the database
+   //         connection.query('SELECT value FROM numbers', (err, rows) => {
+   //             if (err) {
+   //                 res.writeHead(500, {'Content-Type': 'text/plain'});
+   //                 return res.end('Error fetching number from database');
+   //             }
+   //             res.writeHead(200, {'Content-Type': 'text/plain'});
+   //             res.end(rows[0].value.toString());
+   //         });
+   //     });
+   // }
 });
 
 // Start the server
