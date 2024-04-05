@@ -41,11 +41,12 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
 
 app.use(express.static(process.env.STATIC_DIR));
 app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        "script-src": ["'self'", "js.stripe.com", "stripe.com"],
-      },
-    },
+  contentSecurityPolicy: false,
+//    contentSecurityPolicy: {
+//      directives: {
+//        "script-src": ["'self'", "js.stripe.com", "stripe.com"],
+//      },
+//    },
 }));
 app.use(
   express.json({
