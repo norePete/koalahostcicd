@@ -46,17 +46,6 @@ app.use(helmet({
         "script-src": ["'self'", "js.stripe.com", "stripe.com"],
       },
     },
-
-
-
-    { contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
-      // Add more directives as needed
-    }
-  }
 }));
 app.use(
   express.json({
