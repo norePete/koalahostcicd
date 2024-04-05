@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   // Load the publishable key from the server. The publishable key
   // is set in your .env file.
-  const {publishableKey} = await fetch('/config').then((r) => r.json());
+  const {publishableKey} = await fetch('/gateway/config').then((r) => r.json());
   if (!publishableKey) {
     addMessage(
       'No publishable key returned from the server. Please check `.env` and try again'
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     error: backendError,
     clientSecret,
     receipt
-  } = await fetch('/create-payment-intent').then(r => r.json());
+  } = await fetch('/gateway/create-payment-intent').then(r => r.json());
   if (backendError) {
     addMessage(backendError.message);
   }
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   tempButton.addEventListener('click', async (e) => {
     e.preventDefault();
     console.log("minting Nzd to transient wallet");
-          const transientWallet = await fetch('/payment-confirmation', {
+          const transientWallet = await fetch('/gateway/payment-confirmation', {
             method: 'POST', // Specify the HTTP method as POST
             headers: {
             'Content-Type': 'application/json' // Set the content type header

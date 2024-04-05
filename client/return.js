@@ -5,7 +5,7 @@ button.textContent = 'reveal secret key';
 async function buttonClickHandler() {
     console.log('Button clicked');
     const retrievedString = localStorage.getItem("paymentIntentId");
-    const { transientWallet } = await fetch('/payment-confirmation', {
+    const { transientWallet } = await fetch('/gateway/payment-confirmation', {
     method: 'POST', // Specify the HTTP method as POST
     headers: {
     'Content-Type': 'application/json' // Set the content type header
@@ -36,7 +36,7 @@ container.appendChild(button);
 
 // Load the publishable key from the server. The publishable key
 // is set in your .env file.
-const {publishableKey} = await fetch('/config').then((r) => r.json());
+const {publishableKey} = await fetch('/gateway/config').then((r) => r.json());
 if (!publishableKey) {
     addMessage(
     'No publishable key returned from the server. Please check `.env` and try again'

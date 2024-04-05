@@ -20,11 +20,7 @@ const {
   createAssociatedTokenAccountIdempotent,
   mintToChecked,
 } = require("@solana/spl-token");
-
-const bs58 = require("bs58");
-const base = require('base-x');
-const BN = require('bn.js');
-
+const helmet = require('helmet');
 
 const express = require('express');
 const gpg = require('gpg');
@@ -44,6 +40,16 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
 });
 
 app.use(express.static(process.env.STATIC_DIR));
+app.use(helmet(
+    { contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      // Add more directives as needed
+    }
+  }
+}));
 app.use(
   express.json({
     // We need the raw body to verify webhook signatures.
@@ -65,48 +71,6 @@ const cached_secrets = {
     * Util Functions
     */
 
-async function setup_public(publicKeyArmored) {
-    const publicKey = await openpgp.readKey({ armoredKey: publicKeyArmored });
-    return publicKey;
-}
-
-async function setup_private(privateKeyArmored, passphrase) {
-    const privateKey = await openpgp.decryptKey({
-        privateKey: await openpgp.readPrivateKey({ armoredKey: privateKeyArmored }),
-        passphrase
-    });
-    return privateKey;
-}
-
-async function encryptPGP(clear_text, publicKey, privateKey) {
-    const encrypted = await openpgp.encrypt({
-        message: await openpgp.createMessage({ text: clear_text }), // input as Message object
-        encryptionKeys: publicKey,
-        signingKeys: privateKey // optional
-    });
-    return encrypted;
-}
-
-async function decryptPGP(encrypted, publicKey, privateKey) {
-    const message = await openpgp.readMessage({
-        armoredMessage: encrypted // parse armored message
-    });
-
-    const { data: decrypted, signatures } = await openpgp.decrypt({
-        message,
-        verificationKeys: publicKey, // optional
-        decryptionKeys: privateKey
-    });
-    // check signature validity (signed messages only)
-    try {
-        await signatures[0].verified; // throws on invalid signature
-        console.log('Signature is valid');
-    } catch (e) {
-        throw new Error('Signature could not be verified: ' + e.message);
-    }
-    return decrypted;
-}
-
     /*
     * Mint Utils
     */
@@ -116,18 +80,24 @@ async function decryptPGP(encrypted, publicKey, privateKey) {
     * Routes 
     */
 
-app.get('/', (req, res) => {
+app.get('/gateway', (req, res) => {
   const path = resolve(process.env.STATIC_DIR + '/index.html');
   res.sendFile(path);
 });
 
-app.get('/config', (req, res) => {
+app.get('/gateway/client/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filepath = resolve(process.env.STATIC_DIR + '/' + filename);
+  res.sendFile(filepath);
+});
+
+app.get('/gateway/config', (req, res) => {
   res.send({
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
   });
 });
 
-app.get('/create-payment-intent', async (req, res) => {
+app.get('/gateway/create-payment-intent', async (req, res) => {
   // Create a PaymentIntent with the amount, currency, and a payment method type.
   //
   // See the documentation [0] for the full list of supported parameters.
@@ -153,7 +123,7 @@ app.get('/create-payment-intent', async (req, res) => {
 });
 
 
-app.post('/payment-confirmation', async (req, res) => {
+app.post('/gateway/payment-confirmation', async (req, res) => {
     try {
         return res.status(200).send({
           bs58: '',
@@ -173,7 +143,7 @@ app.post('/payment-confirmation', async (req, res) => {
 // Expose a endpoint as a webhook handler for asynchronous events.
 // Configure your webhook in the stripe developer dashboard
 // https://dashboard.stripe.com/test/webhooks
-app.post('/webhook', async (req, res) => {
+app.post('/gateway/webhook', async (req, res) => {
   let data, eventType;
 
   // Check if webhook signing is configured.
