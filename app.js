@@ -40,8 +40,9 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
 });
 
 app.use(express.static(process.env.STATIC_DIR));
-app.use(helmet({
-  contentSecurityPolicy: false,
+app.use(
+    helmet({
+        contentSecurityPolicy: false,
 //    contentSecurityPolicy: {
 //      directives: {
 //        "script-src": ["'self'", "js.stripe.com", "stripe.com"],
