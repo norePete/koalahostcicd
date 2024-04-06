@@ -216,7 +216,7 @@ app.post('/gateway/payment-confirmation', async (req, res) => {
                 res.writeHead(500, {'Content-Type': 'text/plain'});
                 return res.end('Error with transaction. Email help@1228247.xyz, please quote transaction id for a refund:', paymentIntentId);
             }
-            if (status === 'success' && rows.length === 0) {
+            if (status === 'succeeded' && rows.length === 0) {
                 // insert
                 db.query(`INSERT INTO test (data) VALUES ('${paymentIntentId}')`, async (err, result) => {
                     if (err) {
@@ -236,7 +236,7 @@ app.post('/gateway/payment-confirmation', async (req, res) => {
             } else {
                 return res.status(500).send({
                     error: {
-                        message: `waiting for payment to be confirmed. status: ${status}, rows.length: ${rows.length}`,
+                        message: `waiting for payment to be confirmed. status: ${status}`,
                     }
                 });
             }
