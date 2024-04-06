@@ -272,4 +272,22 @@ app.post('/gateway/webhook', async (req, res) => {
   res.sendStatus(200);
 });
 
+app.get('/gateway/db', async (req, res) => {
+  db.query("INSERT INTO test (data) VALUES ('inserted from server')", (err, result) => {
+      if (err) {
+          res.writeHead(500, {'Content-Type': 'text/plain'});
+          return res.end('Error incrementing number in database');
+      }
+      // Fetch the updated number from the database
+      db.query('SELECT data FROM test', (err, rows) => {
+          if (err) {
+              res.writeHead(500, {'Content-Type': 'text/plain'});
+              return res.end('Error fetching number from database');
+          }
+          res.writeHead(200, {'Content-Type': 'text/plain'});
+          res.end(JSON.stringify(rows));
+      });
+  });
+});
+
 app.listen();
