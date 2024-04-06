@@ -300,8 +300,8 @@ app.get('/gateway/db', async (req, res) => {
           return res.end('Error incrementing number in database');
       }
       // Fetch the updated number from the database
-      const octopus = null;
-      const unicorn = null;
+      let octopus = null;
+      let unicorn = null;
 
       db.query("SELECT * FROM test WHERE data = 'octopus'", (err, rows_found) => {
           if (err) {
