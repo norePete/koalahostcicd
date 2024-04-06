@@ -21,6 +21,7 @@ const {
   mintToChecked,
 } = require("@solana/spl-token");
 const helmet = require('helmet');
+const mysql = require('mysql');
 
 const express = require('express');
 const app = express();
@@ -38,6 +39,21 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
     url: "https://github.com/stripe-samples"
   }
 });
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL: ' + err.stack);
+    return;
+  }
+  console.log('Connected to MySQL as id ' + connection.threadId);
+});
+
 
 let connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 const base58 = base('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz');
