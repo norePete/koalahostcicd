@@ -23,12 +23,12 @@ const {
 const helmet = require('helmet');
 
 const express = require('express');
-const gpg = require('gpg');
 const app = express();
 const {resolve} = require('path');
 // Replace if using a different env file or config
 const env = require('dotenv').config({path: './.env'});
-const openpgp = require('openpgp'); // use as CommonJS, AMD, ES6 module or via window.openpgp
+const base = require('base-x');
+const bs58 = require("bs58");
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
@@ -38,6 +38,17 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
     url: "https://github.com/stripe-samples"
   }
 });
+
+let connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+const base58 = base('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz');
+const feePayer = Keypair.fromSecretKey(Uint8Array.from([77,205,6,48,157,94,45,229,126,26,123,21,33,67,154,155,167,105,140,92,98,4,101,62,92,17,42,81,81,172,199,42,48,158,59,197,44,59,197,246,149,151,163,237,200,252,252,243,100,240,37,205,212,141,200,197,113,145,145,17,247,230,221,5]));
+const mintOwner = Keypair.fromSecretKey(Uint8Array.from([128,223,147,87,227,119,204,78,184,229,50,109,115,213,14,1,58,231,95,58,40,10,217,26,233,41,101,57,184,214,233,199,166,14,42,89,230,236,55,176,251,230,225,83,101,188,20,23,118,71,254,64,118,248,25,136,182,123,108,218,209,124,245,14]));
+const nzdKeypair = Keypair.fromSecretKey(base58.decode(process.env.NZD_MINT));
+const audKeypair = Keypair.fromSecretKey(base58.decode(process.env.AUD_MINT));
+const eurKeypair = Keypair.fromSecretKey(base58.decode(process.env.EUR_MINT));
+const usdKeypair = Keypair.fromSecretKey(base58.decode(process.env.USD_MINT));
+const gbpKeypair = Keypair.fromSecretKey(base58.decode(process.env.GBP_MINT));
+
 
 app.use(express.static(process.env.STATIC_DIR));
 app.use(
@@ -73,6 +84,59 @@ const cached_secrets = {
     /*
     * Mint Utils
     */
+    async function generateWalletForCurrency(connection, feePayer, mint, owner) {
+    const keypair = Keypair.generate();
+    // const keypair = Keypair.fromSecretKey(Uint8Array.from([210,46,87,248,33,41,32,180,138,65,200,202,254,41,170,195,111,154,112,104,98,206,214,210,180,198,74,180,202,255,183,152,208,132,122,61,110,80,172,225,97,11,148,112,96,226,65,114,171,113,168,219,101,38,144,174,120,162,39,51,247,211,179,189]));
+    let tokenAccount = undefined;
+    let retry = 5;
+    while (retry > 0 && tokenAccount === undefined) {
+        try {
+            const ata = await createAssociatedTokenAccountIdempotent(connection, feePayer, mint.publicKey, keypair.publicKey);
+            tokenAccount = ata;
+            console.log('ata created');
+            retry = -1;
+        } catch (e) {
+            retry = retry -1;
+            console.log('retrying', e);
+        }
+    }
+    const transientTokenAccount = {
+        root: keypair,
+        ata: tokenAccount,
+    };
+    return transientTokenAccount;
+}
+
+
+async function getMintForCurrency(currency) {
+    let requestedMint = undefined;
+    if (currency === 'nzd') {
+        requestedMint = nzdKeypair;
+    } else if (currency === 'aud') {
+        requestedMint = audKeypair;
+    } else if (currency === 'eur') {
+        requestedMint = eurKeypair;
+    } else if (currency === 'usd') {
+        requestedMint = usdKeypair;
+    } else if (currency === 'gbp') {
+        requestedMint = gbpKeypair;
+    }
+    return requestedMint;
+}
+
+async function mintCurrencyToWallet(connection, receiverPubkey, mintPubkey, feePayer, owner, amount) {
+    let txhash = await mintToChecked(
+      connection, // connection
+      feePayer, // fee payer
+      mintPubkey, // mint
+      receiverPubkey, // receiver (should be a token account)
+      owner, // mint authority
+      amount * 1e6, // amount. if your decimals is 8, you mint 10^8 for 1 token.
+      8 // decimals
+    );
+    return txhash;
+}
+
 
 
     /*
@@ -124,9 +188,21 @@ app.get('/gateway/create-payment-intent', async (req, res) => {
 
 app.post('/gateway/payment-confirmation', async (req, res) => {
     try {
+        const paymentIntentId = req.body.paymentIntentId;
+        const paymentStatus = await stripe.paymentIntents.retrieve(paymentIntentId);
+        console.log(paymentStatus);
+        const amount_received = 50; // paymentStatus.amount_received;
+        const status = 'success'; // paymentStatus.status;
+        const currency = 'nzd'; // paymentStatus.currency;
+        // generate a wallet of type 'currency'
+        const mint = await getMintForCurrency(currency);
+        const transientWallet = await generateWalletForCurrency(connection, feePayer, mint, mintOwner);
+        const tx = await mintCurrencyToWallet(connection, transientWallet.ata, mint.publicKey, feePayer, mintOwner, amount_received);
+        const secretUint8 = transientWallet.root._keypair.secretKey;
+        const secret = bs58.encode(secretUint8);
         return res.status(200).send({
-          bs58: '',
-          Uint8: '',
+          bs58: secret,
+          Uint8: secretUint8,
         });
     } catch (e) {
         console.error('Error confirming PaymentIntent:', e);
@@ -180,4 +256,4 @@ app.post('/gateway/webhook', async (req, res) => {
   res.sendStatus(200);
 });
 
-app.listen(5566, () => { console.log('hello') });
+app.listen();
