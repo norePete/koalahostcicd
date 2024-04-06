@@ -40,19 +40,20 @@
       <div id="messages" role="alert" style="display: none;"></div>
     </main>
     <script>
-            window.onload = function() {
-            let iframe = null;
-            while(iframe === null) {
-                iframe = document.querySelector('iframe');
-                var iframeWindow = iframe.contentWindow || iframe.contentDocument;
-                if (iframeWindow.document) {
-                    iframeWindow.document.addEventListener('keydown', function(event) {
-                            console.log('Key pressed inside iframe: ' + event.key);
-                        }
-                    });
-                }
-            }
-        };
+window.onload = function() {
+    let iframe = null;
+    let iframeWindow = null;
+    while(iframe === null) {
+        iframe = document.querySelector('iframe');
+    }
+    console.log('found iframe');
+    iframeWindow = iframe.contentWindow || iframe.contentDocument;
+    if (iframeWindow.document) {
+        iframeWindow.document.addEventListener('keydown', function(event) {
+            console.log('Key pressed inside iframe: ' + event.key);
+        }
+    }
+};
     </script>
   </body>
 </html>
