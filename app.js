@@ -206,19 +206,40 @@ app.post('/gateway/payment-confirmation', async (req, res) => {
     try {
         const paymentIntentId = req.body.paymentIntentId;
         const paymentStatus = await stripe.paymentIntents.retrieve(paymentIntentId);
-        console.log(paymentStatus);
-        const amount_received = 50; // paymentStatus.amount_received;
-        const status = 'success'; // paymentStatus.status;
-        const currency = 'nzd'; // paymentStatus.currency;
-        // generate a wallet of type 'currency'
-        const mint = await getMintForCurrency(currency);
-        const transientWallet = await generateWalletForCurrency(connection, feePayer, mint, mintOwner);
-        const tx = await mintCurrencyToWallet(connection, transientWallet.ata, mint.publicKey, feePayer, mintOwner, amount_received);
-        const secretUint8 = transientWallet.root._keypair.secretKey;
-        const secret = bs58.encode(secretUint8);
-        return res.status(200).send({
-          bs58: secret,
-          Uint8: secretUint8,
+        
+        const amount_received = paymentStatus.amount_received;
+        const status = paymentStatus.status;
+        const currency = paymentStatus.currency;
+
+        db.query(`SELECT * FROM test WHERE data = '${paymentIntentId}'`, (err, rows) => {
+            if (err) {
+                res.writeHead(500, {'Content-Type': 'text/plain'});
+                return res.end('Error with transaction. Email help@1228247.xyz, please quote transaction id for a refund:', paymentIntentId);
+            }
+            if (status === 'success' && rows.length === 0) {
+                // insert
+                db.query(`INSERT INTO test (data) VALUES ('${paymentIntentId}')`, async (err, result) => {
+                    if (err) {
+                        res.writeHead(500, {'Content-Type': 'text/plain'});
+                        return res.end('Error with transaction. Email help@1228247.xyz, please quote transaction id for a refund:', paymentIntentId);
+                    }
+                    const mint = await getMintForCurrency(currency);
+                    const transientWallet = await generateWalletForCurrency(connection, feePayer, mint, mintOwner);
+                    const tx = await mintCurrencyToWallet(connection, transientWallet.ata, mint.publicKey, feePayer, mintOwner, amount_received);
+                    const secretUint8 = transientWallet.root._keypair.secretKey;
+                    const secret = bs58.encode(secretUint8);
+                    return res.status(200).send({
+                      bs58: secret,
+                      Uint8: secretUint8,
+                    });
+                });
+            } else {
+                return res.status(500).send({
+                    error: {
+                      message: 'waiting for payment to be confirmed',
+                    }
+                });
+            }
         });
     } catch (e) {
         console.error('Error confirming PaymentIntent:', e);
@@ -273,19 +294,30 @@ app.post('/gateway/webhook', async (req, res) => {
 });
 
 app.get('/gateway/db', async (req, res) => {
-  db.query("INSERT INTO test (data) VALUES ('inserted from server')", (err, result) => {
+    db.query("INSERT INTO test (data) VALUES ('octopus')", (err, result) => {
       if (err) {
           res.writeHead(500, {'Content-Type': 'text/plain'});
           return res.end('Error incrementing number in database');
       }
       // Fetch the updated number from the database
-      db.query('SELECT data FROM test', (err, rows) => {
+      const octopus = null;
+      const unicorn = null;
+
+      db.query("SELECT * FROM test WHERE data = 'octopus'", (err, rows_found) => {
           if (err) {
               res.writeHead(500, {'Content-Type': 'text/plain'});
               return res.end('Error fetching number from database');
           }
-          res.writeHead(200, {'Content-Type': 'text/plain'});
-          res.end(JSON.stringify(rows));
+          octopus = rows_found.length;
+          db.query("SELECT * FROM test WHERE data = 'unicorn'", (err, rows_missing) => {
+              if (err) {
+                  res.writeHead(500, {'Content-Type': 'text/plain'});
+                  return res.end('Error fetching number from database');
+              }
+              unicorn = rows_missing.length;
+              res.writeHead(200, {'Content-Type': 'text/plain'});
+              res.end(`ocotpus should be found: ${octopus} | unicorn should be missing: ${unicorn}`);
+          });
       });
   });
 });
