@@ -236,7 +236,7 @@ app.post('/gateway/payment-confirmation', async (req, res) => {
             } else {
                 return res.status(500).send({
                     error: {
-                      message: 'waiting for payment to be confirmed',
+                        message: `waiting for payment to be confirmed. status: ${status}, rows.length: ${rows.length}`,
                     }
                 });
             }
