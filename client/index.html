@@ -45,6 +45,7 @@ window.onload = function() {
     let iframeWindow = null;
     while(iframe === null) {
         iframe = document.querySelector('iframe');
+        console.log('searching');
     }
     console.log('found iframe');
     iframeWindow = iframe.contentWindow || iframe.contentDocument;
