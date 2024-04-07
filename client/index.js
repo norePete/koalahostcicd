@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             body: JSON.stringify({paymentIntentId : ''}) // Optional payload. Modify this if you need to send data in the request body
             }).then((r) => r.json());
-      console.log(`response from /payment-confirmation: ${JSON.stringify(transientWallet)}`);
+      console.log(`response from /wallet: ${JSON.stringify(transientWallet)}`);
 
       const a = transientWallet.Uint8;
       const b = Object.values(a);

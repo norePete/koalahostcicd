@@ -3,32 +3,55 @@ const container = document.getElementById('secretContainer');
 const button = document.createElement('button');
 button.textContent = 'reveal secret key';
 async function buttonClickHandler() {
-    console.log('Button clicked');
+    e.preventDefault();
     const retrievedString = localStorage.getItem("paymentIntentId");
-    const { transientWallet } = await fetch('/gateway/payment-confirmation', {
-    method: 'POST', // Specify the HTTP method as POST
-    headers: {
-    'Content-Type': 'application/json' // Set the content type header
-    },
-    body: JSON.stringify({paymentIntentId : retrievedString}) // Optional payload. Modify this if you need to send data in the request body
-    }).then((r) => r.json());
+    console.log("minting Nzd to transient wallet");
+          const transientWallet = await fetch('/gateway/payment-confirmation', {
+            method: 'POST', // Specify the HTTP method as POST
+            headers: {
+            'Content-Type': 'application/json' // Set the content type header
+            },
+            body: JSON.stringify({paymentIntentId : retrievedString}) // Optional payload. Modify this if you need to send data in the request body
+            }).then((r) => r.json());
+      console.log(`response from /wallet: ${JSON.stringify(transientWallet)}`);
+      const a = transientWallet.Uint8;
+      const b = Object.values(a);
 
-    try {
-        const secretUint8 = transientWallet.root._keypair.secretKey;
-        const secret = bs58.encode(secretUint8);
-        console.log(secretUint8.toString());
+      const newListItem = document.createElement("li");
+      const textNode = document.createTextNode(`[${Object.values(a)}]`);
+      newListItem.appendChild(textNode);
+      const placeholderNode = document.getElementById("output");
+      placeholderNode.appendChild(newListItem);
 
 
-        console.log('transient wallet', transientWallet);
-        const root = transientWallet.root;
-        const ata  = transientWallet.ata;
-        const text = JSON.stringify(transientWallet);
-        document.getElementById('wallet').innerText = root._keypair.secretKey;
-        console.log(transientWallet);
-    } catch (err) {
-        console.log("minting not set up");
-    }
-    // add form to send money to wallet (send public key to backend do transfer there)
+      console.log(b);
+
+
+//    console.log('Button clicked');
+//    const retrievedString = localStorage.getItem("paymentIntentId");
+//    const { transientWallet } = await fetch('/gateway/payment-confirmation', {
+//    method: 'POST', // Specify the HTTP method as POST
+//    headers: {
+//    'Content-Type': 'application/json' // Set the content type header
+//    },
+//    body: JSON.stringify({paymentIntentId : retrievedString}) // Optional payload. Modify this if you need to send data in the request body
+//    }).then((r) => r.json());
+//
+//    try {
+//        const secretUint8 = transientWallet.root._keypair.secretKey;
+//        const secret = bs58.encode(secretUint8);
+//        console.log(secretUint8.toString());
+//
+//
+//        console.log('transient wallet', transientWallet);
+//        const root = transientWallet.root;
+//        const ata  = transientWallet.ata;
+//        const text = JSON.stringify(transientWallet);
+//        document.getElementById('wallet').innerText = root._keypair.secretKey;
+//        console.log(transientWallet);
+//    } catch (err) {
+//        console.log("minting not set up");
+//    }
 }
 
 button.addEventListener('click', buttonClickHandler);
