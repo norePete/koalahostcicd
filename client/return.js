@@ -2,8 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 const secretButton = document.getElementById('secretButton');
 localStorage.setItem("sk_wallet", '');
 
-async function buttonClickHandler(e) {
-    e.preventDefault();
+async function revealSecretKey() {
     let key = "ERROR";
     const retrievedString = localStorage.getItem("paymentIntentId");
     const textArea = document.getElementById("output");
@@ -37,8 +36,6 @@ async function buttonClickHandler(e) {
     localStorage.setItem("sk_wallet", key);
     textArea.value = key;
 }
-
-secretButton.addEventListener('click', buttonClickHandler);
 
 // Load the publishable key from the server. The publishable key
 // is set in your .env file.
