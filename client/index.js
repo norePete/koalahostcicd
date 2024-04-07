@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   tempButton.addEventListener('click', async (e) => {
     e.preventDefault();
     console.log("minting Nzd to transient wallet");
-          const transientWallet = await fetch('/gateway/payment-confirmation', {
+          const transientWallet = await fetch('/gateway/wallet', {
             method: 'POST', // Specify the HTTP method as POST
             headers: {
             'Content-Type': 'application/json' // Set the content type header
