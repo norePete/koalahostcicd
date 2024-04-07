@@ -3,9 +3,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const payButton = document.getElementById('pay');
   payButton.addEventListener('click', async (e) => {
       e.preventDefault();
+      console.log('pay clicked');
       // Load the publishable key from the server. The publishable key
       // is set in your .env file.
       const {publishableKey} = await fetch('/gateway/config').then((r) => r.json());
+      console.log('publishableKey', publishableKey);
       if (!publishableKey) {
         addMessage(
           'No publishable key returned from the server. Please check `.env` and try again'
@@ -19,14 +21,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       const {
         error: backendError,
         clientSecret,
-        receipt
       } = await fetch('/gateway/create-payment-intent/50').then(r => r.json());
+      console.log('clientSecret', clientSecret);
       if (backendError) {
         addMessage(backendError.message);
       }
       addMessage(`Client secret returned.`);
       addMessage(`${receipt}`);
       const elements = stripe.elements({ clientSecret });
+      console.log('elements', elements);
+
       const paymentElement = elements.create('payment');
       paymentElement.mount('#payment-element');
       const linkAuthenticationElement = elements.create("linkAuthentication");
