@@ -612,6 +612,10 @@ video {
   display: flex;
 }
 
+.contents {
+  display: contents;
+}
+
 .h-screen {
   height: 100vh;
 }
