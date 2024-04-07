@@ -14,9 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const {publishableKey} = await fetch('/gateway/config').then((r) => r.json());
       console.log('publishableKey', publishableKey);
       if (!publishableKey) {
-        addMessage(
-          'No publishable key returned from the server. Please check `.env` and try again'
-        );
         alert('Please set your Stripe publishable API key in the .env file');
       }
 
@@ -41,9 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       console.log('clientSecret', clientSecret);
       if (backendError) {
-        addMessage(backendError.message);
       }
-      addMessage(`Client secret returned.`);
       const elements = stripe.elements({ clientSecret });
       console.log('elements', elements);
 
@@ -66,7 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         });
         if (stripeError) {
-          addMessage(stripeError.message);
           submitted = false;
           form.querySelector('button').disabled = false;
           return;
