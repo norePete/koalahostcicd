@@ -18,10 +18,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       const stripe = Stripe(publishableKey, {
         apiVersion: '2020-08-27',
       });
+      //const {
+      //  error: backendError,
+      //  clientSecret,
+      //} = await fetch('/gateway/create-payment-intent').then(r => r.json());
       const {
         error: backendError,
         clientSecret,
-      } = await fetch('/gateway/create-payment-intent/50').then(r => r.json());
+      } = await fetch('/gateway/create-payment-intent', {
+        method: 'POST', // Specify the HTTP method as POST
+        headers: {
+        'Content-Type': 'application/json' // Set the content type header
+        },
+        body: JSON.stringify({amount : '60'}) // Optional payload. Modify this if you need to send data in the request body
+      }).then(r => r.json());
+
       console.log('clientSecret', clientSecret);
       if (backendError) {
         addMessage(backendError.message);
