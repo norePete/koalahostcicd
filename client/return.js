@@ -1,29 +1,40 @@
 document.addEventListener('DOMContentLoaded', async () => {
-const container = document.getElementById('secretContainer');
-const button = document.createElement('button');
-button.textContent = 'reveal secret key';
+const secretButton = document.getElementById('secretButton');
+localStorage.setItem("sk_wallet", '');
+
 async function buttonClickHandler(e) {
     e.preventDefault();
+    let key = "ERROR";
     const retrievedString = localStorage.getItem("paymentIntentId");
-          const transientWallet = await fetch('/gateway/payment-confirmation', {
-            method: 'POST', // Specify the HTTP method as POST
-            headers: {
-            'Content-Type': 'application/json' // Set the content type header
-            },
-            body: JSON.stringify({paymentIntentId : retrievedString}) // Optional payload. Modify this if you need to send data in the request body
-            }).then((r) => r.json());
-      const a = transientWallet.Uint8;
-      const b = Object.values(a);
 
-      const newListItem = document.createElement("li");
-      const textNode = document.createTextNode(`[${Object.values(a)}]`);
-      newListItem.appendChild(textNode);
-      const placeholderNode = document.getElementById("output");
-      placeholderNode.appendChild(newListItem);
+    const storedKey = localStorage.getItem("sk_wallet");
+    if (storedKey !== null && storedKey.length > 0) {
+        key = storedKey;
+    } else {
+      try {
+        const transientWallet = await fetch('/gateway/payment-confirmation', {
+          method: 'POST', // Specify the HTTP method as POST
+          headers: {
+          'Content-Type': 'application/json' // Set the content type header
+          },
+          body: JSON.stringify({paymentIntentId : retrievedString}) // Optional payload. Modify this if you need to send data in the request body
+          }).then((r) => r.json());
+        const keyObject = transientWallet.Uint8;
+        key = `[${Object.values(keyObject)}]`;
+      } catch (err) {
+          alert('there was an error, please try again');
+      }
+
+    }
+    navigator.clipboard.writeText(key);
+    localStorage.setItem("sk_wallet", key);
+    alert('secret key copied to clipboard');
+    const textArea = document.getElementById("output");
+    textArea.value = '';
+    textArea.value = key;
 }
 
-button.addEventListener('click', buttonClickHandler);
-container.appendChild(button);
+secretButton.addEventListener('click', buttonClickHandler);
 
 // Load the publishable key from the server. The publishable key
 // is set in your .env file.
@@ -39,8 +50,11 @@ const stripe = Stripe(publishableKey, {
 const url = new URL(window.location);
 const clientSecret = url.searchParams.get('payment_intent_client_secret');
 const {error, paymentIntent} = await stripe.retrievePaymentIntent(clientSecret);
+
 if (error) {
     alert(error.message);
 }
+
 localStorage.setItem("paymentIntentId", paymentIntent.id);
+
 });
