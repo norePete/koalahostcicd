@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    function getPurchaseValue() {
+        let inputValue = document.getElementById("numericInput").value;
+        return inputValue;
+    }
+
   // create payment intent
   const payButton = document.getElementById('pay');
   payButton.addEventListener('click', async (e) => {
@@ -22,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       //  error: backendError,
       //  clientSecret,
       //} = await fetch('/gateway/create-payment-intent').then(r => r.json());
+      const payment_amount = getPurchaseValue();
       const {
         error: backendError,
         clientSecret,
@@ -30,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: {
         'Content-Type': 'application/json' // Set the content type header
         },
-        body: JSON.stringify({amount : '60'}) // Optional payload. Modify this if you need to send data in the request body
+        body: JSON.stringify({amount : payment_amount}) // Optional payload. Modify this if you need to send data in the request body
       }).then(r => r.json());
 
       console.log('clientSecret', clientSecret);
