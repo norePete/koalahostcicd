@@ -68,30 +68,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
   });
 
-  const tempButton = document.getElementById('temp');
-  tempButton.addEventListener('click', async (e) => {
-    e.preventDefault();
-    console.log("minting Nzd to transient wallet");
-          const transientWallet = await fetch('/gateway/wallet', {
-            method: 'POST', // Specify the HTTP method as POST
-            headers: {
-            'Content-Type': 'application/json' // Set the content type header
-            },
-            body: JSON.stringify({paymentIntentId : ''}) // Optional payload. Modify this if you need to send data in the request body
-            }).then((r) => r.json());
-      console.log(`response from /wallet: ${JSON.stringify(transientWallet)}`);
-
-      const a = transientWallet.Uint8;
-      const b = Object.values(a);
-
-      const newListItem = document.createElement("li");
-      const textNode = document.createTextNode(`[${Object.values(a)}]`);
-      newListItem.appendChild(textNode);
-      const placeholderNode = document.getElementById("output");
-      placeholderNode.appendChild(newListItem);
-
-
-      console.log(b);
-  });
-
 });
