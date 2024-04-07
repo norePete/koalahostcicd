@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 const container = document.getElementById('secretContainer');
 const button = document.createElement('button');
 button.textContent = 'reveal secret key';
-async function buttonClickHandler() {
+async function buttonClickHandler(e) {
     e.preventDefault();
     const retrievedString = localStorage.getItem("paymentIntentId");
     console.log("minting Nzd to transient wallet");
