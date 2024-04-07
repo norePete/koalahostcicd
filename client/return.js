@@ -6,6 +6,8 @@ async function buttonClickHandler(e) {
     e.preventDefault();
     let key = "ERROR";
     const retrievedString = localStorage.getItem("paymentIntentId");
+    const textArea = document.getElementById("output");
+    textArea.value = '';
 
     const storedKey = localStorage.getItem("sk_wallet");
     if (storedKey !== null && storedKey.length > 0) {
@@ -26,11 +28,13 @@ async function buttonClickHandler(e) {
       }
 
     }
-    navigator.clipboard.writeText(key);
+    try {
+        navigator.clipboard.writeText(key);
+        alert('secret key copied to clipboard');
+    } catch (err) {
+    }
+
     localStorage.setItem("sk_wallet", key);
-    alert('secret key copied to clipboard');
-    const textArea = document.getElementById("output");
-    textArea.value = '';
     textArea.value = key;
 }
 
