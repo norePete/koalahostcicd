@@ -47,6 +47,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const linkAuthenticationElement = elements.create("linkAuthentication");
       linkAuthenticationElement.mount("#link-authentication-element");
       const form = document.getElementById('payment-form');
+      form.classList.remove("hideMe");
+      form.classList.add("showMe");
+
       let submitted = false;
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
