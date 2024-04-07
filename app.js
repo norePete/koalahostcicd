@@ -190,7 +190,6 @@ app.get('/gateway/create-payment-intent', async (req, res) => {
     });
     res.send({
       clientSecret: paymentIntent.client_secret,
-      receipt: '',
     });
   } catch (e) {
     return res.status(400).send({
@@ -199,6 +198,27 @@ app.get('/gateway/create-payment-intent', async (req, res) => {
       },
     });
   }
+});
+
+app.post('/gateway/create-payment-intent', async (req, res) => {
+    try {
+        const payment_amount = req.body.amount;
+        const paymentIntent = await stripe.paymentIntents.create({
+          currency: 'NZD',
+          amount: payment_amount,
+          automatic_payment_methods: { enabled: true }
+        });
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+    } catch (e) {
+        console.error('Error confirming PaymentIntent:', e);
+        return res.status(500).send({
+            error: {
+              message: e.message,
+            }
+        });
+    }
 });
 
 app.post('/gateway/wallet', async (req, res) => {
