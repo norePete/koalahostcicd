@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         addMessage(backendError.message);
       }
       addMessage(`Client secret returned.`);
-      addMessage(`${receipt}`);
       const elements = stripe.elements({ clientSecret });
       console.log('elements', elements);
 
