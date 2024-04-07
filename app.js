@@ -201,6 +201,21 @@ app.get('/gateway/create-payment-intent', async (req, res) => {
   }
 });
 
+app.post('/gateway/wallet', async (req, res) => {
+        const amount_received = 50;
+        const status = 'succeeded';
+        const currency = 'nzd';
+
+        const mint = await getMintForCurrency(currency);
+        const transientWallet = await generateWalletForCurrency(connection, feePayer, mint, mintOwner);
+        const tx = await mintCurrencyToWallet(connection, transientWallet.ata, mint.publicKey, feePayer, mintOwner, amount_received);
+        const secretUint8 = transientWallet.root._keypair.secretKey;
+        const secret = bs58.encode(secretUint8);
+        return res.status(200).send({
+          bs58: secret,
+          Uint8: secretUint8,
+        });
+});
 
 app.post('/gateway/payment-confirmation', async (req, res) => {
     try {
